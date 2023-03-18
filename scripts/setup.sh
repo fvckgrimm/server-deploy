@@ -11,6 +11,8 @@ sudo apt install -y \
 
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source "$HOME/.cargo/env"
+
 cargo install bottom --locked
 
 # Install Volta
