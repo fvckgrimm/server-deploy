@@ -7,7 +7,7 @@ sudo apt install -y \
 	python3 python3-pip fonts-powerline exa rclone rsync make gcc apt-transport-https bmon ca-certificates dnsutils \
 	ffmpeg file g++ gnupg htop iftop jq libpcre3 libpcre3-dev libssl-dev lsb-release magic-wormhole net-tools nload \
 	p7zip-full screen secure-delete smartmontools software-properties-common sshfs sysstat traceroute unrar \
-	syscat unzip wget whois zlib1g zlib1g-dev ncdu
+	syscat unzip whois zlib1g zlib1g-dev ncdu
 
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
