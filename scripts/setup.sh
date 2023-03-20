@@ -4,7 +4,7 @@
 sudo apt update
 sudo apt install -y \
 	build-essential git curl wget libssl-dev libreadline-dev zlib1g-dev libbz2-dev libsqlite3-dev tmux neovim \
-	python3 python3-pip fonts-powerline exa rsync make gcc apt-transport-https bmon ca-certificates dnsutils \
+	python3 python3-pip fonts-powerline rsync make gcc apt-transport-https bmon ca-certificates dnsutils \
 	ffmpeg file g++ gnupg htop iftop jq libpcre3 libpcre3-dev libssl-dev lsb-release magic-wormhole net-tools nload \
 	p7zip-full screen secure-delete smartmontools software-properties-common sshfs sysstat traceroute unrar \
 	unzip whois zlib1g zlib1g-dev ncdu
@@ -13,7 +13,16 @@ sudo apt install -y \
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source "$HOME/.cargo/env"
 
+# Install bottom (process/system monitor) 
 cargo install bottom --locked
+
+# Install exa (ls alternative)
+cd ~ \
+ && git clone https://github.com/ogham/exa \
+ && cd exa \
+ && cargo build --release \
+ && cp ./target/release/exa /usr/local/bin \
+ && cd ~ && rm -rf exa/
 
 # Install Volta
 curl https://get.volta.sh | bash
