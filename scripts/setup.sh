@@ -4,10 +4,10 @@
 sudo apt update
 sudo apt install -y \
 	build-essential git curl wget libssl-dev libreadline-dev zlib1g-dev libbz2-dev libsqlite3-dev tmux neovim \
-	python3 python3-pip fonts-powerline exa rclone rsync make gcc apt-transport-https bmon ca-certificates dnsutils \
+	python3 python3-pip fonts-powerline exa rsync make gcc apt-transport-https bmon ca-certificates dnsutils \
 	ffmpeg file g++ gnupg htop iftop jq libpcre3 libpcre3-dev libssl-dev lsb-release magic-wormhole net-tools nload \
 	p7zip-full screen secure-delete smartmontools software-properties-common sshfs sysstat traceroute unrar \
-	syscat unzip whois zlib1g zlib1g-dev ncdu
+	unzip whois zlib1g zlib1g-dev ncdu
 
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -19,16 +19,28 @@ cargo install bottom --locked
 curl https://get.volta.sh | bash
 
 # Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
+curl -sSL https://get.docker.com/ | CHANNEL=stable sh
 
 # Install Docker Compose
-sudo apt install -y docker-compose
+curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep "tag_name" | cut -d\" -f4)/docker-compose-$(uname -s)-$(uname -m)" -o /usr/bin/docker-compose \
+  && chmod +x /usr/bin/docker-compose \
+  && docker-compose version
 
 # Install Cloudflared
 wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
 && sudo dpkg -i cloudflared-linux-amd64.deb \
 && rm cloudflared-linux-amd64.deb
+
+# Install Nginx
+echo "deb http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -cs) nginx" \
+  >> /etc/apt/sources.list.d/nginx.list \
+  && echo "deb-src http://nginx.org/packages/mainline/ubuntu/ $(lsb_release -cs) nginx" \
+  >> /etc/apt/sources.list.d/nginx.list \
+  && curl -fsSL http://nginx.org/keys/nginx_signing.key | apt-key add - && apt update
+
+# Install and test
+apt install -y nginx \
+  && nginx -v
 
 # Install nano syntax highlighting
 curl https://raw.githubusercontent.com/scopatz/nanorc/master/install.sh | sh
@@ -43,8 +55,11 @@ set tabstospaces
 set positionlog" >> ~/.nanorc
 
 # Install BorgBackup
-wget https://github.com/borgbackup/borg/releases/download/1.2.3/borg-linux64 -O ~/bin/borg \
-  && chmod +x ~/bin/borg
+curl -s https://api.github.com/repos/borgbackup/borg/releases/latest \
+  | grep browser_download_url | grep 'linux' | cut -d '"' -f 4 | head -1 \
+  | wget -i - -O ~/bin/borg \
+  && chmod +x ~/bin/borg \
+  && borg --version
 
 # Prompt for user and password
 read -p "Enter username for new user: " USERNAME
@@ -88,6 +103,9 @@ wget -c $GOURL -O - | tar -xz -C /usr/local
 echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.zshrc
 source ~/.zshrc
 
+# Install lazydocker
+go install github.com/jesseduffield/lazydocker@latest
+
 # Add aliases to .zshrc
 echo "alias ls='exa -L=1 -lhFTag'
 alias at='tmux attach'" >> ~/.zshrc
@@ -115,12 +133,12 @@ if [ ! -z "$HOSTNAME" ]; then
 fi
 
 # Optional Netmaker install
-read -p "Do you want to install Netmaker? (y/n): " choice
+read -p "Do you want to install Netmaker(server/dashboard for wiregaurd)? (y/n): " choice
 if [[ $choice == [Yy]* ]]; then
     sudo wget -qO /root/nm-quick-interactive.sh https://raw.githubusercontent.com/gravitl/netmaker/master/scripts/nm-quick-interactive.sh \
     && sudo chmod +x /root/nm-quick-interactive.sh && sudo /root/nm-quick-interactive.sh
 else
-    echo "Netmaker installation skipped."
+    echo "Netmaker installation skipped. Installing netclient"
 fi
 
 # Install netclient
@@ -128,5 +146,42 @@ curl -sL 'https://apt.netmaker.org/gpg.key' | sudo tee /etc/apt/trusted.gpg.d/ne
 curl -sL 'https://apt.netmaker.org/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/netclient.list
 sudo apt update
 sudo apt install netclient
+
+# Tools to build from source
+# duf -- df alt
+git clone https://github.com/muesli/duf && cd duf
+go build && mv ./duf /usr/local/bin/ && cd ~ && rm -rf duf
+
+# rclone
+git clone https://github.com/rclone/rclone && cd rclone
+VERS="a9-v$(git tag -l --sort=-v:refname | sed 's/v\([^-].*\)/\1/g' | head -1 | tr -d '-' ).$(git describe --long --tags | sed 's/\([^-].*\)-\([0-9]*\)-\(g.*\)/r\2.\3/g' | tr -d '-')"
+go build -v --ldflags "-s -X github.com/rclone/rclone/fs.Version=${VERS}" && mv ./rclone /usr/local/bin/ && cd ~ && rm -rf rclone
+
+# gotop
+git clone https://github.com/xxxserxxx/gotop && cd gotop
+VERS="a9-v$(git tag -l --sort=-v:refname | sed 's/v\([^-].*\)/\1/g' | head -1 | tr -d '-' ).$(git describe --long --tags | sed 's/\([^-].*\)-\([0-9]*\)-\(g.*\)/r\2.\3/g' | tr -d '-')"
+DATE=$(date +%Y%m%dT%H%M%S)
+go build -o gotop -ldflags "-X main.Version=${VERS} -X main.BuildDate=${DATE}" ./cmd/gotop && mv ./gotop /usr/local/bin/ && cd ~ && rm -rf gotop
+
+# dust -- du alt
+git clone https://github.com/bootandy/dust && cd dust
+cargo build --release && cp ./target/release/dust /usr/local/bin && cd ~ && rm -rf dust
+
+# fd -- find alt
+git clone https://github.com/sharkdp/fd && cd fd
+cargo build --release && cp ./target/release/fd /usr/local/bin && cd ~ && rm -rf fd
+
+# ripgrep -- grep alt
+git clone https://github.com/BurntSushi/ripgrep && cd ripgrep
+cargo build --release --features 'pcre2' && cp ./target/release/rg /usr/local/bin && cd ~ && rm -rf ripgrep
+
+# procs -- ps alt
+git clone https://github.com/dalance/procs && cd procs
+cargo build --release && cp ./target/release/procs /usr/local/bin && cd ~ && rm -rf procs
+
+# jdupes -- file deduplication
+## Example: jdupes -LZ data/
+git clone https://github.com/jbruchon/jdupes && cd jdupes
+make && make install && cd ~ && rm -rf jdupes
 
 echo "Setup complete!"
