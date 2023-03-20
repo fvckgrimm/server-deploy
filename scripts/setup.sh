@@ -70,7 +70,8 @@ chmod 600 .ssh/authorized_keys
 EOF
 
 # Install Zsh for new user
-sudo -H -u $USERNAME sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+sudo -H -u $USERNAME install zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 curl -sSL https://github.com/zthxxx/jovial/raw/master/installer.sh | sudo -E bash -s ${USER:=`whoami`}
 source ~/.zshrc
 
