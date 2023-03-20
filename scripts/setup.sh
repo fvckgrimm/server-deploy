@@ -26,7 +26,6 @@ sudo sh get-docker.sh
 sudo apt install -y docker-compose
 
 # Install Cloudflared
-
 wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb \
 && sudo dpkg -i cloudflared-linux-amd64.deb \
 && rm cloudflared-linux-amd64.deb
@@ -109,8 +108,19 @@ if [ ! -z "$HOSTNAME" ]; then
     sudo hostnamectl set-hostname $HOSTNAME
 fi
 
-# Install netmaker 
-sudo wget -qO /root/nm-quick-interactive.sh https://raw.githubusercontent.com/gravitl/netmaker/master/scripts/nm-quick-interactive.sh \
-&& sudo chmod +x /root/nm-quick-interactive.sh && sudo /root/nm-quick-interactive.sh
+# Optional Netmaker install
+read -p "Do you want to install Netmaker? (y/n): " choice
+if [[ $choice == [Yy]* ]]; then
+    sudo wget -qO /root/nm-quick-interactive.sh https://raw.githubusercontent.com/gravitl/netmaker/master/scripts/nm-quick-interactive.sh \
+    && sudo chmod +x /root/nm-quick-interactive.sh && sudo /root/nm-quick-interactive.sh
+else
+    echo "Netmaker installation skipped."
+fi
+
+# Install netclient
+curl -sL 'https://apt.netmaker.org/gpg.key' | sudo tee /etc/apt/trusted.gpg.d/netclient.asc
+curl -sL 'https://apt.netmaker.org/debian.deb.txt' | sudo tee /etc/apt/sources.list.d/netclient.list
+sudo apt update
+sudo apt install netclient
 
 echo "Setup complete!"
