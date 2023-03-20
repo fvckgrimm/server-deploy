@@ -3,7 +3,7 @@
 # Install essential build tools and additional packages
 sudo apt update
 sudo apt install -y \
-	build-essential golang-go git curl wget libssl-dev libreadline-dev zlib1g-dev libbz2-dev libsqlite3-dev tmux neovim \
+	build-essential git curl wget libssl-dev libreadline-dev zlib1g-dev libbz2-dev libsqlite3-dev tmux neovim \
 	python3 python3-pip fonts-powerline exa rclone rsync make gcc apt-transport-https bmon ca-certificates dnsutils \
 	ffmpeg file g++ gnupg htop iftop jq libpcre3 libpcre3-dev libssl-dev lsb-release magic-wormhole net-tools nload \
 	p7zip-full screen secure-delete smartmontools software-properties-common sshfs sysstat traceroute unrar \
@@ -77,9 +77,15 @@ source ~/.zshrc
 # Switch back to root user
 sudo su
 
-# Install Zsh for root user and set jovial theme
+# Install ohmysh for root user and set jovial theme
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 curl -sSL https://github.com/zthxxx/jovial/raw/master/installer.sh | sudo -E bash -s ${USER:=`whoami`}
+source ~/.zshrc
+
+# Install golang
+GOURL="https://go.dev/dl/$(curl -s "https://go.dev/dl/#stable" | grep -oE 'go[0-9]+\.[0-9]+(\.[0-9]+)?' | sort -V | tail -1).linux-amd64.tar.gz" 
+wget -c $GOURL -O - | tar -xz -C /usr/local
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.zshrc
 source ~/.zshrc
 
 # Add aliases to .zshrc
