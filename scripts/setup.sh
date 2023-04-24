@@ -162,6 +162,7 @@ git clone https://github.com/muesli/duf && cd duf
 go build && mv ./duf /usr/local/bin/ && cd ~ && rm -rf duf
 
 # rclone
+# curl https://rclone.org/install.sh | sudo bash
 git clone https://github.com/rclone/rclone && cd rclone
 VERS="a9-v$(git tag -l --sort=-v:refname | sed 's/v\([^-].*\)/\1/g' | head -1 | tr -d '-' ).$(git describe --long --tags | sed 's/\([^-].*\)-\([0-9]*\)-\(g.*\)/r\2.\3/g' | tr -d '-')"
 go build -v --ldflags "-s -X github.com/rclone/rclone/fs.Version=${VERS}" && mv ./rclone /usr/local/bin/ && cd ~ && rm -rf rclone
